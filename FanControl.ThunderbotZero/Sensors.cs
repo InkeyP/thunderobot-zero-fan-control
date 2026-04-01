@@ -5,13 +5,8 @@ namespace FanControl.ThunderbotZero
     internal class WmiTemperatureSensor : IPluginSensor
     {
         private readonly bool _isCpu;
-
         public WmiTemperatureSensor(string id, string name, bool isCpu)
-        {
-            Id = id;
-            Name = name;
-            _isCpu = isCpu;
-        }
+        { Id = id; Name = name; _isCpu = isCpu; }
 
         public string Id { get; }
         public string Name { get; }
@@ -21,24 +16,15 @@ namespace FanControl.ThunderbotZero
         {
             var info = EcAccess.GetHardwareInfoCached();
             if (info.Valid)
-            {
-                int temp = _isCpu ? info.CpuTemp : info.GpuTemp;
-                if (temp > 0 && temp < 150)
-                    Value = temp;
-            }
+                Value = _isCpu ? info.CpuTemp : info.GpuTemp;
         }
     }
 
     internal class WmiFanSensor : IPluginSensor
     {
         private readonly bool _isCpu;
-
         public WmiFanSensor(string id, string name, bool isCpu)
-        {
-            Id = id;
-            Name = name;
-            _isCpu = isCpu;
-        }
+        { Id = id; Name = name; _isCpu = isCpu; }
 
         public string Id { get; }
         public string Name { get; }
@@ -48,25 +34,22 @@ namespace FanControl.ThunderbotZero
         {
             var info = EcAccess.GetHardwareInfoCached();
             if (info.Valid)
-            {
-                int rpm = _isCpu ? info.CpuFanRpm : info.GpuFanRpm;
-                if (rpm >= 0)
-                    Value = rpm;
-            }
+                Value = _isCpu ? info.CpuFanRpm : info.GpuFanRpm;
         }
     }
 
+    /// <summary>
+    /// Fan control via direct EC register writes (0x2C/0x2D).
+    /// WMI SetFanSpeed doesn't persist (EC overrides), but EC registers do.
+    /// ec-probe is only called on Set/Reset (user action), never in Update loop.
+    /// </summary>
     internal class EcFanControl : IPluginControlSensor
     {
-        private readonly byte _writeRegister;
-        private float _lastSetValue = -1;
+        private readonly byte _register; // 0x2C or 0x2D
+        private float _lastSet = -1;
 
-        public EcFanControl(string id, string name, byte writeRegister)
-        {
-            Id = id;
-            Name = name;
-            _writeRegister = writeRegister;
-        }
+        public EcFanControl(string id, string name, byte register)
+        { Id = id; Name = name; _register = register; }
 
         public string Id { get; }
         public string Name { get; }
@@ -74,22 +57,21 @@ namespace FanControl.ThunderbotZero
 
         public void Update()
         {
-            // No subprocess call — use last set value or 0
-            if (_lastSetValue >= 0)
-                Value = _lastSetValue;
+            if (_lastSet >= 0)
+                Value = _lastSet;
         }
 
         public void Set(float val)
         {
-            _lastSetValue = val;
+            _lastSet = val;
             byte duty = (byte)System.Math.Max(0, System.Math.Min(100, val));
-            EcAccess.WriteRegister(_writeRegister, duty);
+            EcAccess.WriteEcRegister(_register, duty);
         }
 
         public void Reset()
         {
-            _lastSetValue = -1;
-            EcAccess.WriteRegister(_writeRegister, EcAccess.AUTO_VALUE);
+            _lastSet = -1;
+            EcAccess.WriteEcRegister(_register, 0xFF);
         }
     }
 }
