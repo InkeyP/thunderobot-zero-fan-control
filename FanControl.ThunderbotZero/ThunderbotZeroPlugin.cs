@@ -29,11 +29,11 @@ namespace FanControl.ThunderbotZero
 
             _fan1Control = new EcFanControl(
                 "thunderobot/fan1_ctrl", "TR ZERO Fan1 Control",
-                EcAccess.REG_FAN1_WRITE, EcAccess.REG_FAN1_READ);
+                EcAccess.REG_FAN1_WRITE);
 
             _fan2Control = new EcFanControl(
                 "thunderobot/fan2_ctrl", "TR ZERO Fan2 Control",
-                EcAccess.REG_FAN2_WRITE, EcAccess.REG_FAN2_READ);
+                EcAccess.REG_FAN2_WRITE);
         }
 
         public void Load(IPluginSensorsContainer container)

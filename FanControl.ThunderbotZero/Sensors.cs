@@ -59,14 +59,13 @@ namespace FanControl.ThunderbotZero
     internal class EcFanControl : IPluginControlSensor
     {
         private readonly byte _writeRegister;
-        private readonly byte _readRegister;
+        private float _lastSetValue = -1;
 
-        public EcFanControl(string id, string name, byte writeRegister, byte readRegister)
+        public EcFanControl(string id, string name, byte writeRegister)
         {
             Id = id;
             Name = name;
             _writeRegister = writeRegister;
-            _readRegister = readRegister;
         }
 
         public string Id { get; }
@@ -75,19 +74,21 @@ namespace FanControl.ThunderbotZero
 
         public void Update()
         {
-            var val = EcAccess.ReadRegister(_readRegister);
-            if (val.HasValue && val.Value >= 0 && val.Value <= 100)
-                Value = val.Value;
+            // No subprocess call — use last set value or 0
+            if (_lastSetValue >= 0)
+                Value = _lastSetValue;
         }
 
         public void Set(float val)
         {
+            _lastSetValue = val;
             byte duty = (byte)System.Math.Max(0, System.Math.Min(100, val));
             EcAccess.WriteRegister(_writeRegister, duty);
         }
 
         public void Reset()
         {
+            _lastSetValue = -1;
             EcAccess.WriteRegister(_writeRegister, EcAccess.AUTO_VALUE);
         }
     }

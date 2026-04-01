@@ -31,7 +31,7 @@ namespace FanControl.ThunderbotZero
         // Cached WMI result with timestamp
         private static HardwareInfo _cachedInfo;
         private static DateTime _cacheTime = DateTime.MinValue;
-        private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(1);
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(2);
 
         /// <summary>
         /// Get hardware info with 1-second caching.
