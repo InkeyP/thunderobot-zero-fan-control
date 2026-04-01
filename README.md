@@ -73,6 +73,27 @@ python thunderobot_fan.py monitor
 python thunderobot_fan.py curve
 ```
 
+### Using FanControl (Rem0o) Plugin
+
+A native [FanControl](https://github.com/Rem0o/FanControl.Releases) plugin is included, providing GUI-based fan curve control.
+
+1. Build the plugin (requires .NET SDK):
+   ```bash
+   cd FanControl.ThunderbotZero
+   dotnet build -c Release
+   ```
+2. Copy the DLL to FanControl's Plugins directory:
+   ```
+   copy FanControl.ThunderbotZero\bin\Release\netstandard2.0\FanControl.ThunderbotZero.dll <FanControl>\Plugins\
+   ```
+3. Launch FanControl (as Administrator). You will see:
+   - **Temperature sensors:** `TR ZERO CPU Temp`, `TR ZERO GPU Temp`
+   - **Fan sensors:** `TR ZERO Fan1 (CPU)`, `TR ZERO Fan2 (GPU)`
+   - **Fan controls:** `TR ZERO Fan1 Control`, `TR ZERO Fan2 Control`
+4. Create custom fan curves in FanControl's UI by linking temperature sensors to fan controls.
+
+> FanControl will automatically restore EC auto mode (0xFF) when closed.
+
 ### Using NBFC
 
 1. Copy `nbfc/Thunderobot ZERO.xml` to the NBFC Configs directory:
@@ -108,6 +129,11 @@ The short version:
 thunderobot-zero-fan-control/
 ├── README.md                       # This file
 ├── thunderobot_fan.py              # Fan control CLI tool
+├── FanControl.ThunderbotZero/      # FanControl plugin (C#)
+│   ├── ThunderbotZeroPlugin.cs     # Plugin entry point
+│   ├── Sensors.cs                  # Temp/fan/control sensor classes
+│   ├── EcAccess.cs                 # EC register read/write via ec-probe
+│   └── FanControl.ThunderbotZero.csproj
 ├── nbfc/
 │   └── Thunderobot ZERO.xml        # NBFC configuration file
 ├── docs/
@@ -131,5 +157,6 @@ MIT License — see [LICENSE](LICENSE).
 
 ## Acknowledgments
 
+- [FanControl (Rem0o)](https://github.com/Rem0o/FanControl.Releases) — the fan control software this plugin integrates with
 - [NBFC (NoteBook FanControl)](https://github.com/hirschmann/nbfc) — for `ec-probe.exe` and the configuration framework
 - [NBFC Issue #1262](https://github.com/hirschmann/nbfc/issues/1262) — the original request that identified the Quanta OEM connection
