@@ -4,10 +4,10 @@ namespace FanControl.ThunderbotZero
 {
     public class ThunderbotZeroPlugin : IPlugin2
     {
-        private EcTemperatureSensor _cpuTemp;
-        private EcTemperatureSensor _gpuTemp;
-        private EcFanSensor _fan1Sensor;
-        private EcFanSensor _fan2Sensor;
+        private WmiTemperatureSensor _cpuTemp;
+        private WmiTemperatureSensor _gpuTemp;
+        private WmiFanSensor _fan1Sensor;
+        private WmiFanSensor _fan2Sensor;
         private EcFanControl _fan1Control;
         private EcFanControl _fan2Control;
 
@@ -15,17 +15,17 @@ namespace FanControl.ThunderbotZero
 
         public void Initialize()
         {
-            _cpuTemp = new EcTemperatureSensor(
-                "thunderobot/cpu_temp", "TR ZERO CPU Temp", EcAccess.REG_CPU_TEMP);
+            _cpuTemp = new WmiTemperatureSensor(
+                "thunderobot/cpu_temp", "TR ZERO CPU Temp", isCpu: true);
 
-            _gpuTemp = new EcTemperatureSensor(
-                "thunderobot/gpu_temp", "TR ZERO GPU Temp", EcAccess.REG_GPU_TEMP);
+            _gpuTemp = new WmiTemperatureSensor(
+                "thunderobot/gpu_temp", "TR ZERO GPU Temp", isCpu: false);
 
-            _fan1Sensor = new EcFanSensor(
-                "thunderobot/fan1_speed", "TR ZERO Fan1 (CPU)", EcAccess.REG_FAN1_READ);
+            _fan1Sensor = new WmiFanSensor(
+                "thunderobot/fan1_rpm", "TR ZERO Fan1 (CPU)", isCpu: true);
 
-            _fan2Sensor = new EcFanSensor(
-                "thunderobot/fan2_speed", "TR ZERO Fan2 (GPU)", EcAccess.REG_FAN2_READ);
+            _fan2Sensor = new WmiFanSensor(
+                "thunderobot/fan2_rpm", "TR ZERO Fan2 (GPU)", isCpu: false);
 
             _fan1Control = new EcFanControl(
                 "thunderobot/fan1_ctrl", "TR ZERO Fan1 Control",
@@ -58,7 +58,6 @@ namespace FanControl.ThunderbotZero
 
         public void Close()
         {
-            // Restore auto mode on close
             _fan1Control?.Reset();
             _fan2Control?.Reset();
         }

@@ -2,15 +2,15 @@ using FanControl.Plugins;
 
 namespace FanControl.ThunderbotZero
 {
-    internal class EcTemperatureSensor : IPluginSensor
+    internal class WmiTemperatureSensor : IPluginSensor
     {
-        private readonly byte _register;
+        private readonly bool _isCpu;
 
-        public EcTemperatureSensor(string id, string name, byte register)
+        public WmiTemperatureSensor(string id, string name, bool isCpu)
         {
             Id = id;
             Name = name;
-            _register = register;
+            _isCpu = isCpu;
         }
 
         public string Id { get; }
@@ -19,21 +19,25 @@ namespace FanControl.ThunderbotZero
 
         public void Update()
         {
-            var val = EcAccess.ReadRegister(_register);
-            if (val.HasValue && val.Value > 0 && val.Value < 150)
-                Value = val.Value;
+            var info = EcAccess.GetHardwareInfoCached();
+            if (info.Valid)
+            {
+                int temp = _isCpu ? info.CpuTemp : info.GpuTemp;
+                if (temp > 0 && temp < 150)
+                    Value = temp;
+            }
         }
     }
 
-    internal class EcFanSensor : IPluginSensor
+    internal class WmiFanSensor : IPluginSensor
     {
-        private readonly byte _register;
+        private readonly bool _isCpu;
 
-        public EcFanSensor(string id, string name, byte register)
+        public WmiFanSensor(string id, string name, bool isCpu)
         {
             Id = id;
             Name = name;
-            _register = register;
+            _isCpu = isCpu;
         }
 
         public string Id { get; }
@@ -42,9 +46,13 @@ namespace FanControl.ThunderbotZero
 
         public void Update()
         {
-            var val = EcAccess.ReadRegister(_register);
-            if (val.HasValue && val.Value >= 0 && val.Value <= 100)
-                Value = val.Value;
+            var info = EcAccess.GetHardwareInfoCached();
+            if (info.Valid)
+            {
+                int rpm = _isCpu ? info.CpuFanRpm : info.GpuFanRpm;
+                if (rpm >= 0)
+                    Value = rpm;
+            }
         }
     }
 
